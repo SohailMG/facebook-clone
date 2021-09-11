@@ -23,7 +23,7 @@ export default function Home({session}) {
           <Sidebar/>
         {/* Feed */}
         <Feed/>
-        {/* Widgets */}
+        {/* TODO Widgets */}
       </main>
 
       
