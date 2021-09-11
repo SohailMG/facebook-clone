@@ -1,12 +1,14 @@
-import { getSession } from 'next-auth/client'
-import Head from 'next/head'
-import Feed from '../components/Feed'
-import Header from '../components/Header'
-import Login from '../components/Login'
-import Sidebar from '../components/Sidebar'
+import { getSession } from "next-auth/client";
+import Head from "next/head";
+import Feed from "../components/Feed";
+import Header from "../components/Header";
+import Login from "../components/Login";
+import Sidebar from "../components/Sidebar";
+import Widgets from "../components/Widgets";
+import { db } from "../firebase";
 
-export default function Home({session}) {
-  if(!session) return <Login/>
+export default function Home({ session, randomUsers ,posts}) {
+  if (!session) return <Login />;
   return (
     <div className="h-screen bg-gray-100 overflow-hidden">
       <Head>
@@ -16,28 +18,38 @@ export default function Home({session}) {
       </Head>
 
       {/* Header*/}
-      <Header/>
+      <Header />
 
       <main className="flex">
         {/* Sidebar */}
-          <Sidebar/>
+        <Sidebar />
         {/* Feed */}
-        <Feed/>
-        {/* TODO Widgets */}
+        <Feed posts={posts}/>
+        {/* Widgets */}
+        <Widgets randomUsers = { randomUsers}/>
       </main>
-
-      
     </div>
-  )
+  );
 }
 
 export async function getServerSideProps(context) {
   // GET USERS
-  const session = await getSession(context)
-  return {
-    props:{
-      session
-    }
-  }
+  const session = await getSession(context);
+  const res = await fetch("https://randomuser.me/api/?results=7");
+  const data = await res.json();
+  const posts = await db.collection("posts").orderBy("timestamp", "desc").get();
 
+  const docs = posts.docs.map((post) => ({
+    id: post.id,
+    ...post.data(),
+    timestamp: null,
+  }));
+
+  return {
+    props: {
+      session,
+      randomUsers: data.results,
+      posts: docs,
+    },
+  };
 }
